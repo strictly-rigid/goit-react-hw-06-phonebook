@@ -1,12 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import PropTypes from 'prop-types';
+import React, { useState } from 'react';
 import { nanoid } from 'nanoid';
 import css from './Form.module.css';
+import { useDispatch, useSelector } from 'react-redux';
+import { addContact } from 'redux/contactsSlice';
+import { selectContacts } from 'redux/selectors';
 
-export default function Form({ addContact, isContactInList }) {
+export default function Form() {
   const [name, setName] = useState('');
   const [number, setNumber] = useState('');
-  const [isContactInListState, setIsContactInListState] = useState(false);
+
+  const dispatch = useDispatch();
+  const contacts = useSelector(selectContacts);
 
   const handleChange = event => {
     const { name, value } = event.target;
@@ -17,15 +21,14 @@ export default function Form({ addContact, isContactInList }) {
     }
   };
 
-  useEffect(() => {
-    const normalizedName = name.trim().toLowerCase();
-    setIsContactInListState(isContactInList(normalizedName));
-  }, [name, isContactInList]);
-
   const handleSubmit = event => {
     event.preventDefault();
 
-    if (isContactInListState) {
+    if (
+      contacts.some(
+        contact => contact.name === name || contact.number === number
+      )
+    ) {
       alert('This contact already exists!');
     } else {
       const newContact = {
@@ -33,7 +36,8 @@ export default function Form({ addContact, isContactInList }) {
         name: name.trim(),
         number: number.trim(),
       };
-      addContact(newContact);
+      dispatch(addContact(newContact));
+      // addContact(newContact);
       setName('');
       setNumber('');
     }
@@ -71,8 +75,3 @@ export default function Form({ addContact, isContactInList }) {
     </form>
   );
 }
-
-Form.propTypes = {
-  addContact: PropTypes.func.isRequired,
-  isContactInList: PropTypes.func.isRequired,
-};
